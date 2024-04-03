@@ -1,0 +1,72 @@
+esphome:
+  name: weather-station
+  friendly_name: "Weather Station"
+
+esp32:
+  board: esp32dev
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "xxx"
+
+ota:
+  password: "yyy"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Weather Station Fallback Hotspot"
+    password: "zzz"
+
+captive_portal:
+    
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+dallas:
+  - pin: 33
+    update_interval: 60s
+
+sensor:
+  - platform: wifi_signal
+    name: "RSSI"
+  - platform: uptime
+    name: "Uptime"
+  - platform: internal_temperature
+    name: "Internal Temperature"
+
+  - platform: dallas
+    index: 0
+    name: "Outside Temperature"
+    icon: mdi:home-thermometer
+
+  - platform: dht
+    pin: 27
+    model: DHT11
+    temperature:
+      name: "Inside Temperature"
+      icon: mdi:home-thermometer-outline
+    humidity:
+      name: "Inside Humidity"
+    update_interval: 60s
+
+display:
+  platform: tm1637
+  clk_pin: 25
+  dio_pin: 26
+  update_interval: 500ms
+  lambda: |-
+      static int i = 0;
+      i++;
+      if ((i % 2) == 0)
+        it.strftime("%H.%M", id(homeassistant_time).now());
+      else
+        it.strftime("%H%M", id(homeassistant_time).now());
